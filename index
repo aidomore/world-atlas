@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный Атлас и Флаги Мира</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl w-full max-w-xl p-6 md:p-8 text-gray-800 relative overflow-hidden">
+        
+        <!-- Главное меню -->
+        <div id="start-screen" class="text-center py-4">
+            <div class="text-6xl mb-2">🌍</div>
+            <h1 class="text-3xl font-extrabold text-blue-600 mb-2">Атлас и Флаги Мира</h1>
+            <p class="text-gray-600 mb-6">Изучай страны, столицы и флаги или проверь свои знания в увлекательной викторине!</p>
+            
+            <div class="space-y-3">
+                <button onclick="startExploreMode()" class="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-lg py-3.5 rounded-2xl shadow-lg hover:opacity-90 transition transform active:scale-95 cursor-pointer">
+                    🗺️ Исследовать страны
+                </button>
+                <button onclick="startQuizMode()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-lg py-3.5 rounded-2xl shadow-lg hover:opacity-90 transition transform active:scale-95 cursor-pointer">
+                    🎮 Викторина «Угадай флаг»
+                </button>
+            </div>
+        </div>
+
+        <!-- Режим исследования стран -->
+        <div id="explore-screen" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-blue-600">Выбери страну:</h2>
+                <button onclick="backToMenu()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold px-3 py-1.5 rounded-xl transition cursor-pointer">
+                    🏠 Меню
+                </button>
+            </div>
+
+            <!-- Список стран (кнопки) -->
+            <div id="countries-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto p-1 mb-4">
+                <!-- Заполняется через JS -->
+            </div>
+
+            <!-- Карточка выбранной страны -->
+            <div id="country-card" class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-center hidden">
+                <div id="country-flag" class="text-5xl mb-2"></div>
+                <h3 id="country-name" class="text-2xl font-extrabold text-gray-800 mb-1"></h3>
+                <p class="text-sm text-gray-600">Столица: <span id="country-capital" class="font-bold text-blue-600"></span></p>
+                <p class="text-xs text-gray-500 mt-1">Континент: <span id="country-region" class="font-semibold"></span></p>
+            </div>
+        </div>
+
+        <!-- Режим викторины -->
+        <div id="quiz-screen" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <span id="quiz-score" class="font-bold text-emerald-600 text-lg">Счет: 0</span>
+                <span id="quiz-progress" class="text-sm font-semibold text-gray-500">Вопрос 1 из 10</span>
+                <button onclick="backToMenu()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold px-3 py-1.5 rounded-xl transition cursor-pointer">
+                    🏠 Меню
+                </button>
+            </div>
+
+            <div class="w-full bg-gray-200 h-2 rounded-full mb-6 overflow-hidden">
+                <div id="timer-bar" class="bg-emerald-500 h-full transition-all duration-300 w-full"></div>
+            </div>
+
+            <div class="text-center mb-4">
+                <p class="text-gray-500 text-sm mb-1">Чей это флаг?</p>
+                <div id="quiz-flag" class="text-7xl mb-4">🏳️</div>
+            </div>
+
+            <div id="quiz-options" class="grid grid-cols-2 gap-3">
+                <!-- Варианты ответов -->
+            </div>
+        </div>
+
+        <!-- Экран результатов викторины -->
+        <div id="result-screen" class="hidden text-center py-6">
+            <div class="text-6xl mb-4" id="result-emoji">🏆</div>
+            <h2 class="text-3xl font-extrabold text-emerald-600 mb-2">Отличный результат!</h2>
+            <p id="final-score-text" class="text-xl text-gray-700 mb-6">Твой счет: 100 очков</p>
+            <button onclick="startQuizMode()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xl py-4 rounded-2xl shadow-lg hover:opacity-90 transition transform active:scale-95 cursor-pointer">
+                Играть снова 🔄
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // База данных стран
+        const countries = [
+            { name: "Испания", capital: "Мадрид", flag: "🇪🇸", region: "Европа" },
+            { name: "Франция", capital: "Париж", flag: "🇫🇷", region: "Европа" },
+            { name: "Италия", capital: "Рим", flag: "🇮🇹", region: "Европа" },
+            { name: "Германия", capital: "Берлин", flag: "🇩🇪", region: "Европа" },
+            { name: "Япония", capital: "Токио", flag: "🇯🇵", region: "Азия" },
+            { name: "Южная Корея", capital: "Сеул", flag: "🇰🇷", region: "Азия" },
+            { name: "Китай", capital: "Пекин", flag: "🇨🇳", region: "Азия" },
+            { name: "США", capital: "Вашингтон", flag: "🇺🇸", region: "Северная Америка" },
+            { name: "Канада", capital: "Оттава", flag: "🇨🇦", region: "Северная Америка" },
+            { name: "Бразилия", capital: "Бразилиа", flag: "🇧🇷", region: "Южная Америка" },
+            { name: "Австралия", capital: "Канберра", flag: "🇦🇺", region: "Австралия" },
+            { name: "Великобритания", capital: "Лондон", flag: "🇬🇧", region: "Европа" },
+            { name: "Мексика", capital: "Мехико", flag: "🇲🇽", region: "Северная Америка" },
+            { name: "Аргентина", capital: "Буэнос-Айрес", flag: "🇦🇷", region: "Южная Америка" },
+            { name: "Индия", capital: "Нью-Дели", flag: "🇮🇳", region: "Азия" },
+            { name: "Египет", capital: "Каир", flag: "🇪🇬", region: "Африка" }
+        ];
+
+        const startScreen = document.getElementById('start-screen');
+        const exploreScreen = document.getElementById('explore-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const countriesGrid = document.getElementById('countries-grid');
+        const countryCard = document.getElementById('country-card');
+        const countryFlag = document.getElementById('country-flag');
+        const countryName = document.getElementById('country-name');
+        const countryCapital = document.getElementById('country-capital');
+        const countryRegion = document.getElementById('country-region');
+
+        const quizScoreEl = document.getElementById('quiz-score');
+        const quizProgressEl = document.getElementById('quiz-progress');
+        const quizFlagEl = document.getElementById('quiz-flag');
+        const quizOptions = document.getElementById('quiz-options');
+        const finalScoreText = document.getElementById('final-score-text');
+        const resultEmoji = document.getElementById('result-emoji');
+        const timerBar = document.getElementById('timer-bar');
+
+        let quizQuestions = [];
+        let quizIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        function backToMenu() {
+            startScreen.classList.remove('hidden');
+            exploreScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+        }
+
+        // --- РЕЖИМ ИССЛЕДОВАНИЯ ---
+        function startExploreMode() {
+            startScreen.classList.add('hidden');
+            exploreScreen.classList.remove('hidden');
+            countryCard.classList.add('hidden');
+
+            countriesGrid.innerHTML = '';
+            countries.forEach(c => {
+                const btn = document.createElement('button');
+                btn.innerHTML = `${c.flag} ${c.name}`;
+                btn.className = "p-3 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 font-semibold rounded-xl text-left transition border border-gray-200 cursor-pointer flex items-center gap-2 text-sm";
+                btn.onclick = () => showCountryInfo(c);
+                countriesGrid.appendChild(btn);
+            });
+        }
+
+        function showCountryInfo(c) {
+            countryCard.classList.remove('hidden');
+            countryFlag.textContent = c.flag;
+            countryName.textContent = c.name;
+            countryCapital.textContent = c.capital;
+            countryRegion.textContent = c.region;
+        }
+
+        // --- РЕЖИМ ВИКТОРИНЫ ---
+        function startQuizMode() {
+            startScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+
+            score = 0;
+            quizIndex = 0;
+            quizQuestions = [...countries].sort(() => 0.5 - Math.random()).slice(0, 10);
+            loadQuizQuestion();
+        }
+
+        function loadQuizQuestion() {
+            if (quizIndex >= quizQuestions.length) {
+                endQuiz();
+                return;
+            }
+
+            isAnswered = false;
+            timerBar.style.width = '100%';
+
+            const q = quizQuestions[quizIndex];
+            quizProgressEl.textContent = `Вопрос ${quizIndex + 1} из 10`;
+            quizScoreEl.textContent = `Счет: ${score}`;
+            quizFlagEl.textContent = q.flag;
+
+            // Генерируем варианты ответов (1 правильный + 3 случайных)
+            let options = [q.name];
+            while (options.length < 4) {
+                let randomCountry = countries[Math.floor(Math.random() * countries.length)].name;
+                if (!options.includes(randomCountry)) {
+                    options.push(randomCountry);
+                }
+            }
+            options.sort(() => 0.5 - Math.random());
+
+            quizOptions.innerHTML = '';
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.textContent = opt;
+                btn.className = "py-3 px-4 bg-gray-100 hover:bg-emerald-50 hover:text-emerald-600 font-bold rounded-2xl text-base transition border-2 border-transparent cursor-pointer shadow-xs text-center";
+                btn.onclick = () => checkQuizAnswer(btn, opt, q.name);
+                quizOptions.appendChild(btn);
+            });
+        }
+
+        function checkQuizAnswer(selectedBtn, selectedOpt, correctOpt) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const buttons = quizOptions.children;
+
+            if (selectedOpt === correctOpt) {
+                selectedBtn.classList.remove('bg-gray-100');
+                selectedBtn.classList.add('bg-emerald-500', 'text-white');
+                score += 10;
+            } else {
+                selectedBtn.classList.remove('bg-gray-100');
+                selectedBtn.classList.add('bg-rose-500', 'text-white');
+
+                for (let btn of buttons) {
+                    if (btn.textContent === correctOpt) {
+                        btn.classList.remove('bg-gray-100');
+                        btn.classList.add('bg-emerald-500', 'text-white');
+                    }
+                }
+            }
+
+            setTimeout(() => {
+                quizIndex++;
+                loadQuizQuestion();
+            }, 1300);
+        }
+
+        function endQuiz() {
+            quizScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+            finalScoreText.textContent = `Твой результат: ${score} из 100 очков`;
+            resultEmoji.textContent = score === 100 ? "👑" : "🌍";
+        }
+    </script>
+</body>
+</html>
