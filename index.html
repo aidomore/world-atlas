@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Интерактивный Атлас и Флаги Мира</title>
+    <title>Большой Атлас Мира и Флаги</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
@@ -19,13 +19,13 @@
         
         <!-- Главное меню -->
         <div id="start-screen" class="text-center py-4">
-            <div class="text-6xl mb-2">🌍</div>
-            <h1 class="text-3xl font-extrabold text-blue-600 mb-2">Атлас и Флаги Мира</h1>
-            <p class="text-gray-600 mb-6">Изучай страны, столицы и флаги или проверь свои знания в увлекательной викторине!</p>
+            <div class="text-6xl mb-2">⚽🌍</div>
+            <h1 class="text-3xl font-extrabold text-blue-600 mb-2">Атлас: Европа и Чемпионаты Мира</h1>
+            <p class="text-gray-600 mb-6">Изучай флаги и столицы всех стран Европы и футбольных сборных мира!</p>
             
             <div class="space-y-3">
                 <button onclick="startExploreMode()" class="w-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold text-lg py-3.5 rounded-2xl shadow-lg hover:opacity-90 transition transform active:scale-95 cursor-pointer">
-                    🗺️ Исследовать страны
+                    🗺️ Исследовать страны (<span id="total-count">0</span>)
                 </button>
                 <button onclick="startQuizMode()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-lg py-3.5 rounded-2xl shadow-lg hover:opacity-90 transition transform active:scale-95 cursor-pointer">
                     🎮 Викторина «Угадай флаг»
@@ -36,14 +36,14 @@
         <!-- Режим исследования стран -->
         <div id="explore-screen" class="hidden">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-bold text-blue-600">Выбери страну:</h2>
+                <h2 class="text-xl font-bold text-blue-600">Все страны (Европа + ЧМ):</h2>
                 <button onclick="backToMenu()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold px-3 py-1.5 rounded-xl transition cursor-pointer">
                     🏠 Меню
                 </button>
             </div>
 
             <!-- Список стран (кнопки) -->
-            <div id="countries-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-56 overflow-y-auto p-1 mb-4">
+            <div id="countries-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto p-1 mb-4 border border-gray-100 rounded-2xl">
                 <!-- Заполняется через JS -->
             </div>
 
@@ -52,7 +52,7 @@
                 <div id="country-flag" class="text-5xl mb-2"></div>
                 <h3 id="country-name" class="text-2xl font-extrabold text-gray-800 mb-1"></h3>
                 <p class="text-sm text-gray-600">Столица: <span id="country-capital" class="font-bold text-blue-600"></span></p>
-                <p class="text-xs text-gray-500 mt-1">Континент: <span id="country-region" class="font-semibold"></span></p>
+                <p class="text-xs text-gray-500 mt-1">Регион: <span id="country-region" class="font-semibold"></span></p>
             </div>
         </div>
 
@@ -93,25 +93,108 @@
     </div>
 
     <script>
-        // База данных стран
+        // Большая база данных: все страны Европы + все сборные-участники Чемпионатов Мира по футболу
         const countries = [
-            { name: "Испания", capital: "Мадрид", flag: "🇪🇸", region: "Европа" },
-            { name: "Франция", capital: "Париж", flag: "🇫🇷", region: "Европа" },
-            { name: "Италия", capital: "Рим", flag: "🇮🇹", region: "Европа" },
-            { name: "Германия", capital: "Берлин", flag: "🇩🇪", region: "Европа" },
-            { name: "Япония", capital: "Токио", flag: "🇯🇵", region: "Азия" },
-            { name: "Южная Корея", capital: "Сеул", flag: "🇰🇷", region: "Азия" },
-            { name: "Китай", capital: "Пекин", flag: "🇨🇳", region: "Азия" },
-            { name: "США", capital: "Вашингтон", flag: "🇺🇸", region: "Северная Америка" },
-            { name: "Канада", capital: "Оттава", flag: "🇨🇦", region: "Северная Америка" },
-            { name: "Бразилия", capital: "Бразилиа", flag: "🇧🇷", region: "Южная Америка" },
-            { name: "Австралия", capital: "Канберра", flag: "🇦🇺", region: "Австралия" },
+            // Европа
+            { name: "Австрия", capital: "Вена", flag: "🇦🇹", region: "Европа" },
+            { name: "Албания", capital: "Тирана", flag: "🇦🇱", region: "Европа" },
+            { name: "Андорра", capital: "Андорра-ла-Велья", flag: "🇦🇩", region: "Европа" },
+            { name: "Беларусь", capital: "Минск", flag: "🇧🇾", region: "Европа" },
+            { name: "Бельгия", capital: "Брюссель", flag: "🇧🇪", region: "Европа" },
+            { name: "Болгария", capital: "София", flag: "🇧🇬", region: "Европа" },
+            { name: "Босния и Герцеговина", capital: "Сараево", flag: "🇧🇦", region: "Европа" },
+            { name: "Ватикан", capital: "Ватикан", flag: "🇻🇦", region: "Европа" },
             { name: "Великобритания", capital: "Лондон", flag: "🇬🇧", region: "Европа" },
-            { name: "Мексика", capital: "Мехико", flag: "🇲🇽", region: "Северная Америка" },
-            { name: "Аргентина", capital: "Буэнос-Айрес", flag: "🇦🇷", region: "Южная Америка" },
-            { name: "Индия", capital: "Нью-Дели", flag: "🇮🇳", region: "Азия" },
-            { name: "Египет", capital: "Каир", flag: "🇪🇬", region: "Африка" }
+            { name: "Венгрия", capital: "Будапешт", flag: "🇭🇺", region: "Европа" },
+            { name: "Германия", capital: "Берлин", flag: "🇩🇪", region: "Европа" },
+            { name: "Греция", capital: "Афины", flag: "🇬🇷", region: "Европа" },
+            { name: "Дания", capital: "Копенгаген", flag: "🇩🇰", region: "Европа" },
+            { name: "Ирландия", capital: "Дублин", flag: "🇮🇪", region: "Европа" },
+            { name: "Исландия", capital: "Рейкьявик", flag: "🇮🇸", region: "Европа" },
+            { name: "Испания", capital: "Мадрид", flag: "🇪🇸", region: "Европа" },
+            { name: "Италия", capital: "Рим", flag: "🇮🇹", region: "Европа" },
+            { name: "Кипр", capital: "Никосия", flag: "🇨🇾", region: "Европа" },
+            { name: "Латвия", capital: "Рига", flag: "🇱🇻", region: "Европа" },
+            { name: "Литва", capital: "Вильнюс", flag: "🇱🇹", region: "Европа" },
+            { name: "Лихтенштейн", capital: "Вадуц", flag: "🇱🇮", region: "Европа" },
+            { name: "Люксембург", capital: "Люксембург", flag: "🇱🇺", region: "Европа" },
+            { name: "Мальта", capital: "Валлетта", flag: "🇲🇹", region: "Европа" },
+            { name: "Молдова", capital: "Кишинев", flag: "🇲🇩", region: "Европа" },
+            { name: "Монако", capital: "Монако", flag: "🇲🇨", region: "Европа" },
+            { name: "Нидерланды", capital: "Амстердам", flag: "🇳🇱", region: "Европа" },
+            { name: "Норвегия", capital: "Осло", flag: "🇳🇴", region: "Европа" },
+            { name: "Польша", capital: "Варшава", flag: "🇵🇱", region: "Европа" },
+            { name: "Португалия", capital: "Лиссабон", flag: "🇵🇹", region: "Европа" },
+            { name: "Румыния", capital: "Бухарест", flag: "🇷🇴", region: "Европа" },
+            { name: "Сан-Марино", capital: "Сан-Марино", flag: "🇸🇲", region: "Европа" },
+            { name: "Сербия", capital: "Белград", flag: "🇷🇸", region: "Европа" },
+            { name: "Словакия", capital: "Братислава", flag: "🇸🇰", region: "Европа" },
+            { name: "Словения", capital: "Любляна", flag: "🇸🇮", region: "Европа" },
+            { name: "Украина", capital: "Киев", flag: "🇺🇦", region: "Европа" },
+            { name: "Финляндия", capital: "Хельсинки", flag: "🇫🇮", region: "Европа" },
+            { name: "Франция", capital: "Париж", flag: "🇫🇷", region: "Европа" },
+            { name: "Хорватия", capital: "Загреб", flag: "🇭🇷", region: "Европа" },
+            { name: "Черногория", capital: "Подгорица", flag: "🇲🇪", region: "Европа" },
+            { name: "Чехия", capital: "Прага", flag: "🇨🇿", region: "Европа" },
+            { name: "Швейцария", capital: "Берн", flag: "🇨🇭", region: "Европа" },
+            { name: "Швеция", capital: "Стокгольм", flag: "🇸🇪", region: "Европа" },
+            { name: "Эстония", capital: "Таллин", flag: "🇪🇪", region: "Европа" },
+
+            // Участники Чемпионатов Мира по футболу (другие континенты)
+            { name: "Аргентина", capital: "Буэнос-Айрес", flag: "🇦🇷", region: "Южная Америка (ЧМ)" },
+            { name: "Бразилия", capital: "Бразилиа", flag: "🇧🇷", region: "Южная Америка (ЧМ)" },
+            { name: "Уругвай", capital: "Монтевидео", flag: "🇺🇾", region: "Южная Америка (ЧМ)" },
+            { name: "Чили", capital: "Сантьяго", flag: "🇨🇱", region: "Южная Америка (ЧМ)" },
+            { name: "Колумбия", capital: "Богота", flag: "🇨🇴", region: "Южная Америка (ЧМ)" },
+            { name: "Перу", capital: "Лима", flag: "🇵🇪", region: "Южная Америка (ЧМ)" },
+            { name: "Эквадор", capital: "Кито", flag: "🇪🇨", region: "Южная Америка (ЧМ)" },
+            { name: "Парагвай", capital: "Асунсьон", flag: "🇵🇾", region: "Южная Америка (ЧМ)" },
+            { name: "Боливия", capital: "Сукре", flag: "🇧🇴", region: "Южная Америка (ЧМ)" },
+            
+            { name: "США", capital: "Вашингтон", flag: "🇺🇸", region: "Северная Америка (ЧМ)" },
+            { name: "Мексика", capital: "Мехико", flag: "🇲🇽", region: "Северная Америка (ЧМ)" },
+            { name: "Канада", capital: "Оттава", flag: "🇨🇦", region: "Северная Америка (ЧМ)" },
+            { name: "Коста-Рика", capital: "Сан-Хосе", flag: "🇨🇷", region: "Северная Америка (ЧМ)" },
+            { name: "Гондурас", capital: "Тегусигальпа", flag: "🇭🇳", region: "Северная Америка (ЧМ)" },
+            { name: "Панама", capital: "Панама", flag: "🇵🇦", region: "Северная Америка (ЧМ)" },
+            { name: "Ямайка", capital: "Кингстон", flag: "🇯🇲", region: "Северная Америка (ЧМ)" },
+            { name: "Тринидад и Тобаго", capital: "Порт-оф-Спейн", flag: "🇹🇹", region: "Северная Америка (ЧМ)" },
+            { name: "Куба", capital: "Гавана", flag: "🇨🇺", region: "Северная Америка (ЧМ)" },
+            { name: "Сальвадор", capital: "Сан-Сальвадор", flag: "🇸🇻", region: "Северная Америка (ЧМ)" },
+            { name: "Гаити", capital: "Порт-о-Пренс", flag: "🇭🇹", region: "Северная Америка (ЧМ)" },
+
+            { name: "Япония", capital: "Токио", flag: "🇯🇵", region: "Азия (ЧМ)" },
+            { name: "Южная Корея", capital: "Сеул", flag: "🇰🇷", region: "Азия (ЧМ)" },
+            { name: "Китай", capital: "Пекин", flag: "🇨🇳", region: "Азия (ЧМ)" },
+            { name: "Саудовская Аравия", capital: "Эр-Рияд", flag: "🇸🇦", region: "Азия (ЧМ)" },
+            { name: "Иран", capital: "Тегеран", flag: "🇮🇷", region: "Азия (ЧМ)" },
+            { name: "Австралия", capital: "Канберра", flag: "🇦🇺", region: "Океания / Азия (ЧМ)" },
+            { name: "Катар", capital: "Доха", flag: "🇶🇦", region: "Азия (ЧМ)" },
+            { name: "ОАЭ", capital: "Абу-Даби", flag: "🇦🇪", region: "Азия (ЧМ)" },
+            { name: "Ирак", capital: "Багдад", flag: "🇮🇶", region: "Азия (ЧМ)" },
+            { name: "Кувейт", capital: "Эль-Кувейт", flag: "🇰🇼", region: "Азия (ЧМ)" },
+            { name: "Северная Корея", capital: "Пхеньян", flag: "🇰🇵", region: "Азия (ЧМ)" },
+            { name: "Индонезия", capital: "Джакарта", flag: "🇮🇩", region: "Азия (ЧМ)" },
+
+            { name: "Камерун", capital: "Яунде", flag: "🇨🇲", region: "Африка (ЧМ)" },
+            { name: "Нигерия", capital: "Абуджа", flag: "🇳🇬", region: "Африка (ЧМ)" },
+            { name: "Марокко", capital: "Рабат", flag: "🇲🇦", region: "Африка (ЧМ)" },
+            { name: "Сенегал", capital: "Дакар", flag: "🇸🇳", region: "Африка (ЧМ)" },
+            { name: "Гана", capital: "Аккра", flag: "🇬🇭", region: "Африка (ЧМ)" },
+            { name: "Египет", capital: "Каир", flag: "🇪🇬", region: "Африка (ЧМ)" },
+            { name: "Тунис", capital: "Тунис", flag: "🇹🇳", region: "Африка (ЧМ)"},
+            { name: "Алжир", capital: "Алжир", flag: "🇩🇿", region: "Африка (ЧМ)" },
+            { name: "ЮАР", capital: "Претория", flag: "🇿🇦", region: "Африка (ЧМ)" },
+            { name: "Кот-д'Ивуар", capital: "Ямусукро", flag: "🇨🇮", region: "Африка (ЧМ)" },
+            { name: "Гана", capital: "Аккра", flag: "🇬🇭", region: "Африка (ЧМ)" },
+            { name: "Ангола", capital: "Луанда", flag: "🇦🇴", region: "Африка (ЧМ)" },
+            { name: "Того", capital: "Ломе", flag: "🇹🇬", region: "Африка (ЧМ)" },
+            { name: "ДР Конго", capital: "Киншаса", flag: "🇨🇩", region: "Африка (ЧМ)" },
+            { name: "Зимбабве", capital: "Хараре", flag: "🇿🇼", region: "Африка (ЧМ)" }
         ];
+
+        // Выводим общее количество стран в меню
+        document.getElementById('total-count').textContent = countries.length;
 
         const startScreen = document.getElementById('start-screen');
         const exploreScreen = document.getElementById('explore-screen');
@@ -195,7 +278,6 @@
             quizScoreEl.textContent = `Счет: ${score}`;
             quizFlagEl.textContent = q.flag;
 
-            // Генерируем варианты ответов (1 правильный + 3 случайных)
             let options = [q.name];
             while (options.length < 4) {
                 let randomCountry = countries[Math.floor(Math.random() * countries.length)].name;
@@ -247,7 +329,7 @@
             quizScreen.classList.add('hidden');
             resultScreen.classList.remove('hidden');
             finalScoreText.textContent = `Твой результат: ${score} из 100 очков`;
-            resultEmoji.textContent = score === 100 ? "👑" : "🌍";
+            resultEmoji.textContent = score === 100 ? "👑" : "⚽";
         }
     </script>
 </body>
